@@ -61,7 +61,7 @@ export default function Page() {
             </div>
             {/* TabBar removed from header */}
             <a 
-              href="https://github.com/michaelmagan/chat-with-music/tree/main" 
+              href="https://github.com/akdeepankar/tambo-os" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 shadow-sm hover:shadow-md"

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 
 
 // Google Maps JS API loader (robust singleton)
-const GOOGLE_MAPS_API_KEY = "AIzaSyBarnFYBK9rDxVtHtnLifwg2RJBoS2EjTI"; // Replace with your API key
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Replace with your API key
 let googleMapsScriptLoading = false;
 let googleMapsScriptLoaded = false;
 let googleMapsScriptCallbacks: (() => void)[] = [];

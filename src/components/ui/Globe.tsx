@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 
 
 // Google Maps JS API loader (robust singleton)
@@ -9,7 +9,7 @@ let googleMapsScriptCallbacks: (() => void)[] = [];
 
 function loadGoogleMapsScript(callback: () => void) {
   if (typeof window === "undefined") return;
-  if ((window as any).google && googleMapsScriptLoaded) {
+  if ((window as Window & typeof globalThis & { google?: typeof google }).google && googleMapsScriptLoaded) {
     callback();
     return;
   }
@@ -42,8 +42,7 @@ interface GlobeProps {
 const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
   console.log("[Globe] Rendered with props:", { lat, lng, address, routePolyline });
   const mapRef = useRef<HTMLDivElement>(null);
-  // Always use props for location, just like music and Gemini
-  const location = { lat, lng, address };
+  // ...existing code...
 
   useEffect(() => {
     console.log("[Globe] useEffect triggered with lat/lng:", lat, lng);
@@ -52,11 +51,11 @@ const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
       if (mapRef.current) {
         // Clear previous map instance by resetting the container
         mapRef.current.innerHTML = "";
-        const google = (window as any).google;
-        let position = typeof lat === "number" && typeof lng === "number"
+  const google = (window as Window & typeof globalThis & { google?: typeof window["google"] }).google as typeof window["google"];
+        const position = typeof lat === "number" && typeof lng === "number"
           ? { lat, lng }
           : { lat: 0, lng: 0 };
-        let mapOptions = {
+        const mapOptions = {
           center: position,
           zoom: typeof lat === "number" && typeof lng === "number" ? 8 : 2,
           mapTypeId: "roadmap",
@@ -68,8 +67,9 @@ const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
           console.log("[Globe] Decoded path:", path);
           if (path.length > 0) {
             const bounds = new google.maps.LatLngBounds();
-            path.forEach((latLng: any) => bounds.extend(latLng));
-            mapOptions.center = bounds.getCenter();
+            path.forEach((latLng: google.maps.LatLng) => bounds.extend(latLng));
+            const center = bounds.getCenter();
+            mapOptions.center = { lat: center.lat(), lng: center.lng() };
             mapOptions.zoom = 12; // Initial zoom, will fit bounds below
           }
         }
@@ -77,16 +77,16 @@ const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
         // If routePolyline, fit bounds
         if (path && path.length > 0) {
           const bounds = new google.maps.LatLngBounds();
-          path.forEach((latLng: any) => bounds.extend(latLng));
+          path.forEach((latLng: google.maps.LatLng) => bounds.extend(latLng));
           mapInstance.fitBounds(bounds);
         }
         // Remove previous outline if any
-        if ((window as any)._globeOutline) {
-          (window as any)._globeOutline.setMap(null);
+        const win = window as Window & typeof globalThis & { _globeOutline?: google.maps.Circle; _globeRoute?: google.maps.Polyline };
+        if (win._globeOutline) {
+          win._globeOutline.setMap(null);
         }
-        // Remove previous route polyline if any
-        if ((window as any)._globeRoute) {
-          (window as any)._globeRoute.setMap(null);
+        if (win._globeRoute) {
+          win._globeRoute.setMap(null);
         }
         // Draw a circle outline only if no routePolyline
         if (!routePolyline && typeof lat === "number" && typeof lng === "number") {
@@ -101,7 +101,7 @@ const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
             center: position,
             radius: 20000, // 20km radius
           });
-          (window as any)._globeOutline = outline;
+          (window as Window & typeof globalThis & { _globeOutline?: google.maps.Circle })._globeOutline = outline;
         }
         // Draw route polyline if provided
         if (path && path.length > 0) {
@@ -113,7 +113,7 @@ const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
             strokeWeight: 5,
             map: mapInstance,
           });
-          (window as any)._globeRoute = polyline;
+          (window as Window & typeof globalThis & { _globeRoute?: google.maps.Polyline })._globeRoute = polyline;
         }
       }
     });
@@ -126,9 +126,9 @@ const Globe: React.FC<GlobeProps> = ({ lat, lng, address, routePolyline }) => {
   let duration = "";
   if (routePolyline && address) {
     // Try to get from window._lastDirectionsLegs if set by directionsTool
-    if (typeof window !== "undefined" && Array.isArray((window as any)._lastDirectionsLegs)) {
-      const legs = (window as any)._lastDirectionsLegs;
-      if (legs[0]) {
+    if (typeof window !== "undefined" && Array.isArray((window as Window & typeof globalThis & { _lastDirectionsLegs?: Array<{ distance?: { text?: string }; duration?: { text?: string } }> })._lastDirectionsLegs)) {
+      const legs = (window as Window & typeof globalThis & { _lastDirectionsLegs?: Array<{ distance?: { text?: string }; duration?: { text?: string } }> })._lastDirectionsLegs;
+      if (legs && legs[0]) {
         distance = legs[0].distance?.text || "";
         duration = legs[0].duration?.text || "";
       }

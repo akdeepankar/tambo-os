@@ -58,7 +58,14 @@ export async function geminiImageEdit({
     throw new Error(`Gemini API error: ${response.status} ${response.statusText} | Body: ${responseText}`);
   }
 
-  let result: any = {};
+  type GeminiApiResponse = {
+    candidates?: Array<{
+      content?: {
+        parts?: Array<{ inlineData?: { data?: string; mimeType?: string } }>
+      }
+    }>
+  };
+  let result: GeminiApiResponse = {};
   try {
     result = JSON.parse(responseText);
   } catch (e) {
@@ -68,14 +75,14 @@ export async function geminiImageEdit({
 
   console.log("Gemini API Parsed Response:", result);
   const parts = result?.candidates?.[0]?.content?.parts ?? [];
-  const imagePart = parts.find((p: any) => p.inlineData?.data);
+  const imagePart = parts.find((p: { inlineData?: { data?: string; mimeType?: string } }) => p.inlineData?.data);
 
   if (!imagePart) {
     throw new Error("No image data found in Gemini response | Full response: " + JSON.stringify(result));
   }
 
   return {
-    data: imagePart.inlineData.data as string,
-    mimeType: imagePart.inlineData.mimeType || "image/jpeg"
+    data: imagePart.inlineData?.data ?? "",
+    mimeType: imagePart.inlineData?.mimeType ?? "image/jpeg"
   };
 }

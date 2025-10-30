@@ -147,7 +147,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     // Helper to safely access window.tamboInteractable
     const getPhotoEditorImage = () => {
       if (typeof window !== "undefined") {
-        const win = window as any;
+  const win = window as Window & typeof globalThis & { tamboInteractable?: Record<string, unknown> };
         if (win.tamboInteractable?.PhotoEditorChat_lastImage) {
           return win.tamboInteractable.PhotoEditorChat_lastImage;
         }
@@ -199,38 +199,43 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         try {
           // If Gemini toggle is enabled, call Gemini edit tool
           if (geminiEnabled && geminiApiKey) {
-            let imageData = getPhotoEditorImage();
-            if (!imageData) throw new Error("No image selected in Photo Editor");
+            const imageDataRaw = getPhotoEditorImage();
+            if (typeof imageDataRaw !== "string" || !imageDataRaw) throw new Error("No image selected in Photo Editor");
             // Resize before base64
-            imageData = await resizeImage(imageData);
-            const imageBase64 = imageData.split(',')[1];
+            const imageData = await resizeImage(imageDataRaw);
+            const imageBase64 = typeof imageData === "string" ? imageData.split(',')[1] : "";
             const { geminiImageEdit } = await import("@/services/gemini-image-edit");
             let geminiStatus = "Editing image with Gemini...";
             if (typeof window !== "undefined") {
-              const win = window as any;
+              const win = window as Window & typeof globalThis & {
+                tamboInteractable?: Record<string, unknown>;
+              };
               if (!win.tamboInteractable) win.tamboInteractable = {};
-              win.tamboInteractable.PhotoEditorChat_lastGeminiStatus = geminiStatus;
+              (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastGeminiStatus = geminiStatus;
             }
             try {
               const geminiResult = await geminiImageEdit({ imageBase64, prompt: value, apiKey: geminiApiKey });
               const { data, mimeType } = geminiResult;
               geminiStatus = "Gemini edit complete.";
               if (typeof window !== "undefined") {
-                const win = window as any;
+                const win = window as Window & typeof globalThis & {
+                  tamboInteractable?: Record<string, unknown>;
+                };
                 if (!win.tamboInteractable) win.tamboInteractable = {};
-                win.tamboInteractable.PhotoEditorChat_lastGeminiStatus = geminiStatus;
+                (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastGeminiStatus = geminiStatus;
+                (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastImage = `data:${mimeType};base64,${data}`;
               }
+            } catch (geminiErr: unknown) {
+              geminiStatus =
+                geminiErr instanceof Error
+                  ? geminiErr.message
+                  : "Gemini image edit failed";
               if (typeof window !== "undefined") {
-                const win = window as any;
+                const win = window as Window & typeof globalThis & {
+                  tamboInteractable?: Record<string, unknown>;
+                };
                 if (!win.tamboInteractable) win.tamboInteractable = {};
-                win.tamboInteractable.PhotoEditorChat_lastImage = `data:${mimeType};base64,${data}`;
-              }
-            } catch (geminiErr: any) {
-              geminiStatus = geminiErr?.message || "Gemini image edit failed";
-              if (typeof window !== "undefined") {
-                const win = window as any;
-                if (!win.tamboInteractable) win.tamboInteractable = {};
-                win.tamboInteractable.PhotoEditorChat_lastGeminiStatus = geminiStatus;
+                (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastGeminiStatus = geminiStatus;
               }
               throw geminiErr;
             }

@@ -2,17 +2,13 @@ import React from "react";
 import {Notepad}  from "@/components/ui/Notepad";
 import {
 	IconHome,
-	IconMagnet,
 	IconMusic,
 	IconNotebook,
 	IconWorld,
 	IconPaint,
-	IconImageInPicture,
-	IconBook,
 	IconCalendarEvent
 } from "@tabler/icons-react";
 import Calendar from "@/components/ui/Calendar";
-import Dictionary from "@/components/ui/Dictionary";
 import Globe from "@/components/ui/Globe";
 import { FloatingDock } from "@/components/ui/floating-dock";
 

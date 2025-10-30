@@ -1,23 +1,15 @@
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 
 const WelcomeScreen: React.FC<{ onFinish?: () => void }> = ({ onFinish }) => {
   const [visible, setVisible] = useState(true);
-
+  const [progress, setProgress] = useState(0);
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
       if (onFinish) onFinish();
     }, 3000);
-    return () => clearTimeout(timer);
-  }, [onFinish]);
-
-  if (!visible) return null;
-
-  // Progress bar state
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    if (!visible) return;
-    let start = Date.now();
+  const start = Date.now();
     const duration = 3000;
     const update = () => {
       const elapsed = Date.now() - start;
@@ -25,15 +17,19 @@ const WelcomeScreen: React.FC<{ onFinish?: () => void }> = ({ onFinish }) => {
       if (elapsed < duration) requestAnimationFrame(update);
     };
     update();
-    return () => setProgress(0);
-  }, [visible]);
+    return () => {
+      clearTimeout(timer);
+      setProgress(0);
+    };
+  }, [onFinish]);
+  if (!visible) return null;
 
   return (
     <div className="fixed inset-0 z-50 w-screen h-screen flex items-center justify-center">
       {/* Gradient background */}
       <div className="absolute inset-0 z-0" style={{background: 'linear-gradient(135deg, #ffffff 60%, #3b82f6 100%)'}} />
       {/* Blurred image background */}
-      <img src="/Tambo-Lockup.svg" alt="Tambo Logo" className="absolute inset-0 w-full h-full object-cover z-10 blur-2xl opacity-40" />
+  <Image src="/Tambo-Lockup.svg" alt="Tambo Logo" fill className="absolute inset-0 w-full h-full object-cover z-10 blur-2xl opacity-40" />
       {/* Glass blur overlay */}
       <div className="absolute inset-0 z-20 backdrop-blur-2xl bg-white/60" />
       {/* Centered content */}

@@ -95,8 +95,10 @@ export const MessageThreadFull = React.forwardRef<
   const [geminiStatus, setGeminiStatus] = React.useState("");
   React.useEffect(() => {
     const interval = setInterval(() => {
-      const win = typeof window !== "undefined" ? (window as any) : undefined;
-      const status = win?.tamboInteractable?.PhotoEditorChat_lastGeminiStatus || "";
+  const win = typeof window !== "undefined" ? (window as Window & typeof globalThis & { tamboInteractable?: Record<string, unknown> }) : undefined;
+      const status = typeof win?.tamboInteractable?.PhotoEditorChat_lastGeminiStatus === "string"
+        ? win.tamboInteractable.PhotoEditorChat_lastGeminiStatus
+        : "";
       setGeminiStatus(status);
     }, 500);
     return () => clearInterval(interval);

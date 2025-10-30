@@ -5,7 +5,7 @@ declare module "@tambo-ai/react" {
   interface TamboThread {
     context?: {
       geminiStatus?: string;
-      [key: string]: any;
+  [key: string]: unknown;
     };
   }
 }

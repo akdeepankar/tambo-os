@@ -102,9 +102,14 @@ function PhotoEditorChatBase({
 
   // Poll for external Gemini edits from chat and update localImageUrl
   useEffect(() => {
-    let lastImage = (typeof window !== "undefined" && (window as any).tamboInteractable?.PhotoEditorChat_lastImage) || "";
+    type TamboWindow = Window & typeof globalThis & {
+      tamboInteractable?: {
+        PhotoEditorChat_lastImage?: string;
+      };
+    };
+    let lastImage = (typeof window !== "undefined" && (window as TamboWindow).tamboInteractable?.PhotoEditorChat_lastImage) || "";
     const interval = setInterval(() => {
-      const win = typeof window !== "undefined" ? (window as any) : undefined;
+      const win = typeof window !== "undefined" ? (window as TamboWindow) : undefined;
       const newImage = win?.tamboInteractable?.PhotoEditorChat_lastImage || "";
       if (newImage && newImage !== lastImage) {
         setLocalImageUrl(newImage);
@@ -149,8 +154,12 @@ function PhotoEditorChatBase({
         setPendingPrompt("");
         // Redraw the new image in the canvas
         setTimeout(() => applyFilters(), 0);
-      } catch (err: any) {
-        setGeminiError(err?.message || "Gemini image edit failed");
+      } catch (err: unknown) {
+        if (typeof err === "object" && err !== null && "message" in err) {
+          setGeminiError((err as { message?: string }).message || "Gemini image edit failed");
+        } else {
+          setGeminiError("Gemini image edit failed");
+        }
       } finally {
         setGeminiLoading(false);
       }
@@ -235,7 +244,12 @@ function PhotoEditorChatBase({
     onPropsUpdate?.(props);
     // Expose current image for chat Gemini integration
     if (typeof window !== "undefined") {
-      const win = window as any;
+      type TamboWindow = Window & typeof globalThis & {
+        tamboInteractable?: {
+          PhotoEditorChat_lastImage?: string;
+        };
+      };
+      const win = window as TamboWindow;
       if (!win.tamboInteractable) win.tamboInteractable = {};
       win.tamboInteractable.PhotoEditorChat_lastImage = localImageUrl || imageUrl;
     }
@@ -297,20 +311,28 @@ function PhotoEditorChatBase({
 
   // Store last chat prompt globally and auto-call Gemini tool when toggle is enabled
   useEffect(() => {
-    if (!window) return;
-    if (!(window as any).tamboInteractable) {
-      (window as any).tamboInteractable = {};
-    }
-    (window as any).tamboInteractable.PhotoEditorChat_lastPrompt = "";
-    (window as any).tamboInteractable.PhotoEditorChat_onInteract = (params: { prompt: string }) => {
-      (window as any).tamboInteractable.PhotoEditorChat_lastPrompt = params.prompt;
+    type TamboWindow = Window & typeof globalThis & {
+      tamboInteractable?: {
+        PhotoEditorChat_lastPrompt?: string;
+        PhotoEditorChat_onInteract?: (params: { prompt: string }) => void;
+      };
+    };
+    if (typeof window === "undefined") return;
+    const win = window as TamboWindow;
+    win.tamboInteractable = win.tamboInteractable || {};
+    win.tamboInteractable.PhotoEditorChat_lastPrompt = "";
+    win.tamboInteractable.PhotoEditorChat_onInteract = (params: { prompt: string }) => {
+      if (!win.tamboInteractable) win.tamboInteractable = {};
+      win.tamboInteractable.PhotoEditorChat_lastPrompt = params.prompt;
       if (starred && geminiApiKey && (localImageUrl || imageUrl) && params.prompt) {
         setPendingPrompt(params.prompt);
       }
     };
     return () => {
-      delete (window as any).tamboInteractable.PhotoEditorChat_onInteract;
-      delete (window as any).tamboInteractable.PhotoEditorChat_lastPrompt;
+      if (win.tamboInteractable) {
+        delete win.tamboInteractable.PhotoEditorChat_onInteract;
+        delete win.tamboInteractable.PhotoEditorChat_lastPrompt;
+      }
     };
   }, [starred, geminiApiKey, localImageUrl, imageUrl]);
 
@@ -324,7 +346,13 @@ function PhotoEditorChatBase({
   // Whenever toggle is enabled or a new prompt arrives, auto-call Gemini tool with the latest prompt
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const lastPrompt = (window as any)?.tamboInteractable?.PhotoEditorChat_lastPrompt;
+    type TamboWindow = Window & typeof globalThis & {
+      tamboInteractable?: {
+        PhotoEditorChat_lastPrompt?: string;
+      };
+    };
+    const win = window as TamboWindow;
+    const lastPrompt = win.tamboInteractable?.PhotoEditorChat_lastPrompt;
     // Only call Gemini if we have a prompt and an uploaded image
     if (starred && geminiApiKey && localImageUrl && lastPrompt && lastPrompt !== pendingPrompt) {
       setPendingPrompt(lastPrompt);

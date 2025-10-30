@@ -92,15 +92,21 @@ const NotepadBase: React.FC<NotepadProps> = ({ heading: propHeading = "", conten
   // Expose Notepad state and actions to window for chat control
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!(window as any).tamboInteractable) {
-      (window as any).tamboInteractable = {};
+    const win = window as Window & typeof globalThis & {
+      tamboInteractable?: {
+        Notepad_state?: { heading: string; content: string; savedNotes: Array<{ heading: string; content: string }> };
+        Notepad_onInteract?: (params: { heading?: string; content?: string; save?: boolean; clear?: boolean; clearAll?: boolean; deleteIndex?: number }) => void;
+      };
+    };
+    if (!win.tamboInteractable) {
+      win.tamboInteractable = {};
     }
-    (window as any).tamboInteractable.Notepad_state = {
+    win.tamboInteractable.Notepad_state = {
       heading,
       content,
       savedNotes,
     };
-    (window as any).tamboInteractable.Notepad_onInteract = (params: { heading?: string; content?: string; save?: boolean; clear?: boolean; clearAll?: boolean; deleteIndex?: number }) => {
+    win.tamboInteractable.Notepad_onInteract = (params) => {
       let headingToSave = heading;
       let contentToSave = content;
       if (typeof params.heading === "string") headingToSave = params.heading;
@@ -139,9 +145,9 @@ const NotepadBase: React.FC<NotepadProps> = ({ heading: propHeading = "", conten
       }
     };
     return () => {
-      if ((window as any).tamboInteractable) {
-        delete (window as any).tamboInteractable.Notepad_onInteract;
-        delete (window as any).tamboInteractable.Notepad_state;
+      if (win.tamboInteractable) {
+        delete win.tamboInteractable.Notepad_onInteract;
+        delete win.tamboInteractable.Notepad_state;
       }
     };
   }, [heading, content, savedNotes]);

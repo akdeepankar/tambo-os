@@ -22,7 +22,10 @@ const Calendar: React.FC = () => {
   // Expose chat control
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-  (window as any).handleCalendarControl = (params: { year?: number; month?: number; highlightDates?: string[], selectDate?: string, addEvent?: { date: string, event: string }, removeEvent?: { date: string, event: string } }) => {
+      (window as Window & typeof globalThis & {
+        handleCalendarControl?: (params: { year?: number; month?: number; highlightDates?: string[], selectDate?: string, addEvent?: { date: string, event: string }, removeEvent?: { date: string, event: string } }) => void;
+        getEventsForDate?: (date: string) => string[];
+      }).handleCalendarControl = (params) => {
         if (typeof params.year === "number") setYear(params.year);
         if (typeof params.month === "number") setMonth(params.month);
         if (Array.isArray(params.highlightDates)) setHighlightDates(params.highlightDates);
@@ -53,16 +56,22 @@ const Calendar: React.FC = () => {
         }
       };
       // Expose a function to check events for a particular date
-      (window as any).getEventsForDate = (date: string) => {
+      (window as Window & typeof globalThis & {
+        getEventsForDate?: (date: string) => string[];
+      }).getEventsForDate = (date: string) => {
         return events[date] || [];
       };
     }
     return () => {
-      if (typeof window !== "undefined" && (window as any).handleCalendarControl) {
-        delete (window as any).handleCalendarControl;
+      const win = window as Window & typeof globalThis & {
+        handleCalendarControl?: (params: { year?: number; month?: number; highlightDates?: string[], selectDate?: string, addEvent?: { date: string, event: string }, removeEvent?: { date: string, event: string } }) => void;
+        getEventsForDate?: (date: string) => string[];
+      };
+      if (typeof window !== "undefined" && win.handleCalendarControl) {
+        delete win.handleCalendarControl;
       }
-      if (typeof window !== "undefined" && (window as any).getEventsForDate) {
-        delete (window as any).getEventsForDate;
+      if (typeof window !== "undefined" && win.getEventsForDate) {
+        delete win.getEventsForDate;
       }
     };
   }, [events]);

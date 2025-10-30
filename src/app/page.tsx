@@ -10,11 +10,7 @@ import React, { useState } from "react";
 import HomeComponent from "@/components/ui/Home";
 import { SimpleMusicPlayer as MusicPlayerComponent } from "@/components/ui/SimpleMusicPlayer";
 import { ComputerDisplay, GlobeResult } from "@/components/ui/ComputerDisplay";
-import {
-  IconHome,
-  IconMagnet,
-  IconMusic,
-} from "@tabler/icons-react";
+
 
 export default function Page() {
   const mcpServers = useMcpServers();
@@ -30,19 +26,13 @@ export default function Page() {
 
   // Expose handler globally for chat/tool integration
   if (typeof window !== "undefined") {
-    (window as any).handlePlaceSearchResult = handlePlaceSearchResult;
+    (window as Window & typeof globalThis & { handlePlaceSearchResult?: (result: GlobeResult) => void }).handlePlaceSearchResult = handlePlaceSearchResult;
   }
 
   React.useEffect(() => {
     setMessageThreadKey(prev => prev + 1);
   }, [activeTab]);
 
-  // Example: simulate a place search result (remove this in production)
-  // React.useEffect(() => {
-  //   setTimeout(() => {
-  //     handlePlaceSearchResult({ lat: 46.227638, lng: 2.213749, address: "France" });
-  //   }, 2000);
-  // }, []);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden relative">
@@ -110,7 +100,7 @@ export default function Page() {
                       duration: 180,
                       preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
                       link: "https://example.com",
-                      albumCover: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Music_Icon.svg/1200px-Music_Icon.svg.png"
+                      albumCover: "https://static.vecteezy.com/system/resources/previews/021/646/276/non_2x/vinyl-record-with-album-cover-on-package-music-retro-vintage-concept-flat-styleillustration-vector.jpg"
                     }]}
                     currentIndex={0}
                     isPlaying={false}

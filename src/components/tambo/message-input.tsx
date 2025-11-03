@@ -1,7 +1,10 @@
 "use client";
 
 import { McpConfigModal } from "@/components/tambo/mcp-config-modal";
-import { Tooltip, TooltipProvider } from "@/components/tambo/suggestions-tooltip";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
@@ -138,16 +141,17 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
 
     // Gemini toggle state
     const [geminiEnabled, setGeminiEnabled] = React.useState(false);
-  // Gemini API key
-  const [geminiApiKey, setGeminiApiKey] = React.useState("");
-  // Popup state for API key entry
-  const [showGeminiApiKey, setShowGeminiApiKey] = React.useState(false);
+    // Gemini API key
+    const [geminiApiKey, setGeminiApiKey] = React.useState("");
+    // Popup state for API key entry
+    const [showGeminiApiKey, setShowGeminiApiKey] = React.useState(false);
 
     // Get selected image from PhotoEditorChat (global window)
     // Helper to safely access window.tamboInteractable
     const getPhotoEditorImage = () => {
       if (typeof window !== "undefined") {
-  const win = window as Window & typeof globalThis & { tamboInteractable?: Record<string, unknown> };
+        const win = window as Window &
+          typeof globalThis & { tamboInteractable?: Record<string, unknown> };
         if (win.tamboInteractable?.PhotoEditorChat_lastImage) {
           return win.tamboInteractable.PhotoEditorChat_lastImage;
         }
@@ -155,10 +159,15 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
       return "";
     };
 
-    // Resize image before base64 conversion
-    const resizeImage = (dataUrl: string, maxWidth = 900, maxHeight = 675): Promise<string> => {
-      return new Promise((resolve) => {
+    // Update resizeImage to handle CORS issues and tainted canvases
+    const resizeImage = (
+      dataUrl: string,
+      maxWidth = 900,
+      maxHeight = 675
+    ): Promise<string> => {
+      return new Promise((resolve, reject) => {
         const img = new window.Image();
+        img.crossOrigin = "anonymous"; // Allow cross-origin images
         img.onload = () => {
           let { width, height } = img;
           if (width > maxWidth) {
@@ -174,7 +183,21 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
           canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx?.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.85));
+          try {
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          } catch (error) {
+            console.error("Canvas is tainted, cannot export toDataURL", error);
+            reject(
+              new Error("Failed to process the image due to CORS restrictions.")
+            );
+          }
+        };
+        img.onerror = () => {
+          reject(
+            new Error(
+              "Failed to load the image. Ensure it is accessible and has proper CORS headers."
+            )
+          );
         };
         img.src = dataUrl;
       });
@@ -200,30 +223,46 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
           // If Gemini toggle is enabled, call Gemini edit tool
           if (geminiEnabled && geminiApiKey) {
             const imageDataRaw = getPhotoEditorImage();
-            if (typeof imageDataRaw !== "string" || !imageDataRaw) throw new Error("No image selected in Photo Editor");
+            if (typeof imageDataRaw !== "string" || !imageDataRaw)
+              throw new Error("No image selected in Photo Editor");
             // Resize before base64
             const imageData = await resizeImage(imageDataRaw);
-            const imageBase64 = typeof imageData === "string" ? imageData.split(',')[1] : "";
-            const { geminiImageEdit } = await import("@/services/gemini-image-edit");
+            const imageBase64 =
+              typeof imageData === "string" ? imageData.split(",")[1] : "";
+            const { geminiImageEdit } = await import(
+              "@/services/gemini-image-edit"
+            );
             let geminiStatus = "Editing image with Gemini...";
             if (typeof window !== "undefined") {
-              const win = window as Window & typeof globalThis & {
-                tamboInteractable?: Record<string, unknown>;
-              };
+              const win = window as Window &
+                typeof globalThis & {
+                  tamboInteractable?: Record<string, unknown>;
+                };
               if (!win.tamboInteractable) win.tamboInteractable = {};
-              (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastGeminiStatus = geminiStatus;
+              (
+                win.tamboInteractable as Record<string, unknown>
+              ).PhotoEditorChat_lastGeminiStatus = geminiStatus;
             }
             try {
-              const geminiResult = await geminiImageEdit({ imageBase64, prompt: value, apiKey: geminiApiKey });
+              const geminiResult = await geminiImageEdit({
+                imageBase64,
+                prompt: value,
+                apiKey: geminiApiKey,
+              });
               const { data, mimeType } = geminiResult;
               geminiStatus = "Gemini edit complete.";
               if (typeof window !== "undefined") {
-                const win = window as Window & typeof globalThis & {
-                  tamboInteractable?: Record<string, unknown>;
-                };
+                const win = window as Window &
+                  typeof globalThis & {
+                    tamboInteractable?: Record<string, unknown>;
+                  };
                 if (!win.tamboInteractable) win.tamboInteractable = {};
-                (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastGeminiStatus = geminiStatus;
-                (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastImage = `data:${mimeType};base64,${data}`;
+                (
+                  win.tamboInteractable as Record<string, unknown>
+                ).PhotoEditorChat_lastGeminiStatus = geminiStatus;
+                (
+                  win.tamboInteractable as Record<string, unknown>
+                ).PhotoEditorChat_lastImage = `data:${mimeType};base64,${data}`;
               }
             } catch (geminiErr: unknown) {
               geminiStatus =
@@ -231,11 +270,14 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
                   ? geminiErr.message
                   : "Gemini image edit failed";
               if (typeof window !== "undefined") {
-                const win = window as Window & typeof globalThis & {
-                  tamboInteractable?: Record<string, unknown>;
-                };
+                const win = window as Window &
+                  typeof globalThis & {
+                    tamboInteractable?: Record<string, unknown>;
+                  };
                 if (!win.tamboInteractable) win.tamboInteractable = {};
-                (win.tamboInteractable as Record<string, unknown>).PhotoEditorChat_lastGeminiStatus = geminiStatus;
+                (
+                  win.tamboInteractable as Record<string, unknown>
+                ).PhotoEditorChat_lastGeminiStatus = geminiStatus;
               }
               throw geminiErr;
             }
@@ -262,7 +304,18 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
           setIsSubmitting(false);
         }
       },
-      [value, submit, contextKey, setValue, setDisplayValue, setSubmitError, cancel, isSubmitting, geminiEnabled, geminiApiKey],
+      [
+        value,
+        submit,
+        contextKey,
+        setValue,
+        setDisplayValue,
+        setSubmitError,
+        cancel,
+        isSubmitting,
+        geminiEnabled,
+        geminiApiKey,
+      ]
     );
 
     const contextValue = React.useMemo(
@@ -281,16 +334,30 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         submitError,
         setSubmitError,
       }),
-      [displayValue, setValue, submit, handleSubmit, isPending, isSubmitting, error, contextKey, submitError]
+      [
+        displayValue,
+        setValue,
+        submit,
+        handleSubmit,
+        isPending,
+        isSubmitting,
+        error,
+        contextKey,
+        submitError,
+      ]
     );
     return (
-      <MessageInputContext.Provider value={contextValue as MessageInputContextValue}>
+      <MessageInputContext.Provider
+        value={contextValue as MessageInputContextValue}
+      >
         <form
           ref={ref}
           onSubmit={handleSubmit}
           className={cn(messageInputVariants({ variant }), className)}
           data-slot="message-input-form"
-          {...Object.fromEntries(Object.entries(props).filter(([key]) => key !== "showgeminitoggle"))}
+          {...Object.fromEntries(
+            Object.entries(props).filter(([key]) => key !== "showgeminitoggle")
+          )}
         >
           <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
             {/* Gemini toggle UI - only show if showgeminitoggle is true */}
@@ -302,14 +369,28 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
                       type="checkbox"
                       checked={geminiEnabled}
                       onChange={() => {
-                        setGeminiEnabled(s => !s);
+                        setGeminiEnabled((s) => !s);
                         if (!geminiEnabled) setShowGeminiApiKey(true);
                       }}
                       className="sr-only peer"
                     />
                     <div className="w-10 h-6 bg-muted rounded-full peer-checked:bg-yellow-400 transition-colors"></div>
                     <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow flex items-center justify-center transition-all duration-200 peer-checked:translate-x-4">
-                      <svg className={`w-3 h-3 ${geminiEnabled ? 'text-yellow-500' : 'text-muted-foreground'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17.75l-6.16-5.13a4.5 4.5 0 016.32-6.32 4.5 4.5 0 016.32 6.32z"></path></svg>
+                      <svg
+                        className={`w-3 h-3 ${
+                          geminiEnabled
+                            ? "text-yellow-500"
+                            : "text-muted-foreground"
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 17.75l-6.16-5.13a4.5 4.5 0 016.32-6.32 4.5 4.5 0 016.32 6.32z"></path>
+                      </svg>
                     </div>
                   </div>
                   <span className="ml-2 text-sm font-medium">Gemini</span>
@@ -318,12 +399,14 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
                 {showGeminiApiKey && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                     <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 min-w-[320px] flex flex-col gap-4">
-                      <h3 className="text-lg font-semibold mb-2">Enter Gemini API Key</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Enter Gemini API Key
+                      </h3>
                       <input
                         type="text"
                         placeholder="Gemini API Key"
                         value={geminiApiKey}
-                        onChange={e => setGeminiApiKey(e.target.value)}
+                        onChange={(e) => setGeminiApiKey(e.target.value)}
                         className="px-2 py-1 border rounded text-sm"
                       />
                       <div className="flex gap-2 justify-end mt-2">
@@ -331,14 +414,18 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
                           className="px-3 py-1 bg-primary text-white rounded shadow hover:bg-primary/90"
                           onClick={() => setShowGeminiApiKey(false)}
                           disabled={!geminiApiKey}
-                        >Save</button>
+                        >
+                          Save
+                        </button>
                         <button
                           className="px-3 py-1 bg-muted text-foreground rounded shadow hover:bg-muted/80"
                           onClick={() => {
                             setShowGeminiApiKey(false);
                             setGeminiEnabled(false);
                           }}
-                        >Cancel</button>
+                        >
+                          Cancel
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -460,7 +547,7 @@ const MessageInputSubmitButton = React.forwardRef<
 
   const buttonClasses = cn(
     "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
-    className,
+    className
   );
 
   return (

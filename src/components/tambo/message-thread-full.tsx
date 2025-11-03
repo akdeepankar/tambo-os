@@ -80,13 +80,15 @@ export const MessageThreadFull = React.forwardRef<
     {
       id: "suggestion-4",
       title: "Shuffle playlist",
-      detailedSuggestion: "Shuffle the songs in my playlist to play in random order",
+      detailedSuggestion:
+        "Shuffle the songs in my playlist to play in random order",
       messageId: "shuffle-playlist",
     },
     {
       id: "suggestion-5",
       title: "Create jazz playlist",
-      detailedSuggestion: "Create a new playlist with smooth jazz and classic jazz songs",
+      detailedSuggestion:
+        "Create a new playlist with smooth jazz and classic jazz songs",
       messageId: "create-jazz-playlist",
     },
   ];
@@ -95,10 +97,18 @@ export const MessageThreadFull = React.forwardRef<
   const [geminiStatus, setGeminiStatus] = React.useState("");
   React.useEffect(() => {
     const interval = setInterval(() => {
-  const win = typeof window !== "undefined" ? (window as Window & typeof globalThis & { tamboInteractable?: Record<string, unknown> }) : undefined;
-      const status = typeof win?.tamboInteractable?.PhotoEditorChat_lastGeminiStatus === "string"
-        ? win.tamboInteractable.PhotoEditorChat_lastGeminiStatus
-        : "";
+      const win =
+        typeof window !== "undefined"
+          ? (window as Window &
+              typeof globalThis & {
+                tamboInteractable?: Record<string, unknown>;
+              })
+          : undefined;
+      const status =
+        typeof win?.tamboInteractable?.PhotoEditorChat_lastGeminiStatus ===
+        "string"
+          ? win.tamboInteractable.PhotoEditorChat_lastGeminiStatus
+          : "";
       setGeminiStatus(status);
     }, 500);
     return () => clearInterval(interval);
@@ -109,7 +119,7 @@ export const MessageThreadFull = React.forwardRef<
       {/* Thread History Sidebar - rendered first if history is on the left */}
       {historyPosition === "left" && threadHistorySidebar}
 
-  <ThreadContainer ref={mergedRef} className={className}>
+      <ThreadContainer ref={mergedRef} className={className}>
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />
@@ -126,11 +136,33 @@ export const MessageThreadFull = React.forwardRef<
           <div className="flex items-center gap-2 px-2 py-1 ml-5 text-xs rounded-md bg-transparent text-muted-foreground mt-2">
             {geminiStatus === "Gemini edit complete." ? (
               <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-gray-200">
-                <svg className="h-3 w-3 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="16 8 11 13 8 10" /></svg>
+                <svg
+                  className="h-3 w-3 text-gray-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="16 8 11 13 8 10" />
+                </svg>
               </span>
             ) : (
               <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-gray-200">
-                <svg className="h-3 w-3 animate-spin text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <svg
+                  className="h-3 w-3 animate-spin text-gray-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
               </span>
             )}
             <span>{geminiStatus}</span>
@@ -152,9 +184,9 @@ export const MessageThreadFull = React.forwardRef<
         </div>
 
         {/* Message suggestions */}
-        <MessageSuggestions initialSuggestions={defaultSuggestions} maxSuggestions={5}>
+        {/* <MessageSuggestions initialSuggestions={defaultSuggestions} maxSuggestions={5}>
           <MessageSuggestionsList />
-        </MessageSuggestions>
+        </MessageSuggestions> */}
       </ThreadContainer>
 
       {/* Thread History Sidebar - rendered last if history is on the right */}

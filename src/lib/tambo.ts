@@ -8,10 +8,12 @@ import { TamboComponent, TamboTool } from "@tambo-ai/react";
 import { searchMusicSchema } from "@/lib/types";
 import { searchMusic } from "@/services/music-search";
 import { geminiImageEdit } from "@/services/gemini-image-edit";
+import { imageSearch } from "@/services/image-search";
 import { SongDisplay, songDisplaySchema } from "@/components/ui/SongDisplay";
 import Dictionary from "@/components/ui/Dictionary";
 import { PhotoEditorChat } from "@/components/ui/PhotoEditorChat";
 import { photoEditorChatSchema } from "@/components/ui/photoEditorChatSchema";
+import { ImageGallery } from "@/components/ui/ImageGallery";
 import { searchPlaceClient } from "@/services/search-place";
 import { directionsTool } from "@/services/directions";
 import { calendarControlTool } from "@/services/calendar-control";
@@ -104,6 +106,19 @@ export const tools: TamboTool[] = [
       }
     }
   },
+  {
+    name: "imageSearch",
+    description: "Search for images using Unsplash (returns up to 6 results).",
+    tool: imageSearch,
+    toolSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Search query for images." },
+        apiKey: { type: "string", description: "Optional Unsplash API key override." },
+      },
+      required: ["query"],
+    },
+  },
 // ...existing code...
 ];
 
@@ -128,9 +143,21 @@ export const components: TamboComponent[] = [
   },
   {
     name: "PhotoEditorChat",
-    description: "Edit a photo with brightness, contrast, saturation, blur, hue, grayscale, sepia, and invert controls. Shows edit history and allows sending the edited image to chat.",
+    description: "Edit a photo with brightness, contrast, saturation, blur, hue, grayscale, sepia, and invert controls. Shows edit history and allows sending the edited image to chat. Change the canvas background color.",
     component: PhotoEditorChat,
     propsSchema: photoEditorChatSchema
+  },
+  {
+    name: "ImageGallery",
+    description: "Display a 3x2 gallery of images for a search query (uses Unsplash).",
+    component: ImageGallery,
+    propsSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" }
+      },
+      required: ["query"]
+    }
   },
 
 ];

@@ -4,7 +4,6 @@ import { Cog, Star } from "lucide-react";
 import { IconPhoto } from "@tabler/icons-react";
 import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";
-import gifler from "gifler";
 
 interface EditHistoryItem {
   brightness: number;
@@ -380,93 +379,86 @@ function PhotoEditorChatBase({
     if (!ctx) return;
     if (!localImageUrl) return;
 
-    if (localImageUrl.endsWith(".gif")) {
-      // Handle GIF rendering
-      gifler(localImageUrl).get((aGif: any) => {
-        aGif.animateInCanvas(canvas);
-      });
-    } else {
-      const img = new window.Image();
-      img.crossOrigin = "anonymous"; // Ensure cross-origin images are loaded properly
-      img.src = localImageUrl;
+    const img = new window.Image();
+    img.crossOrigin = "anonymous"; // Ensure cross-origin images are loaded properly
+    img.src = localImageUrl;
 
-      img.onload = () => {
-        // Set a fixed canvas size
-        const fixedWidth = 800; // Fixed width for the canvas
-        const fixedHeight = 450; // Fixed height for the canvas
-        canvas.width = fixedWidth;
-        canvas.height = fixedHeight;
+    img.onload = () => {
+      // Set a fixed canvas size
+      const fixedWidth = 800; // Fixed width for the canvas
+      const fixedHeight = 450; // Fixed height for the canvas
+      canvas.width = fixedWidth;
+      canvas.height = fixedHeight;
 
-        // Fill the background with the selected color
-        ctx.fillStyle = canvasBackgroundColor;
-        ctx.fillRect(0, 0, fixedWidth, fixedHeight);
+      // Fill the background with the selected color
+      ctx.fillStyle = canvasBackgroundColor;
+      ctx.fillRect(0, 0, fixedWidth, fixedHeight);
 
-        // Calculate scaling to fit the image within the fixed rectangle
-        let drawWidth = img.width;
-        let drawHeight = img.height;
-        const widthRatio = fixedWidth / drawWidth;
-        const heightRatio = fixedHeight / drawHeight;
-        const scale = Math.min(widthRatio, heightRatio);
+      // Calculate scaling to fit the image within the fixed rectangle
+      let drawWidth = img.width;
+      let drawHeight = img.height;
+      const widthRatio = fixedWidth / drawWidth;
+      const heightRatio = fixedHeight / drawHeight;
+      const scale = Math.min(widthRatio, heightRatio);
 
-        drawWidth = Math.round(drawWidth * scale);
-        drawHeight = Math.round(drawHeight * scale);
+      drawWidth = Math.round(drawWidth * scale);
+      drawHeight = Math.round(drawHeight * scale);
 
-        const offsetX = (fixedWidth - drawWidth) / 2; // Center the image horizontally
-        const offsetY = (fixedHeight - drawHeight) / 2; // Center the image vertically
+      const offsetX = (fixedWidth - drawWidth) / 2; // Center the image horizontally
+      const offsetY = (fixedHeight - drawHeight) / 2; // Center the image vertically
 
-        ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px) hue-rotate(${hue}deg) grayscale(${grayscale}%) sepia(${sepia}%) invert(${invert}%)`;
-        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+      ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px) hue-rotate(${hue}deg) grayscale(${grayscale}%) sepia(${sepia}%) invert(${invert}%)`;
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-        // Draw text overlay if present
-        if (textState.trim()) {
-          ctx.filter = "none";
-          // Only use valid values for fontStyle and fontWeight
-          const style = ["normal", "italic", "oblique"].includes(
-            textFontStyleState
-          )
-            ? textFontStyleState
-            : "normal";
-          const weight = [
-            "normal",
-            "bold",
-            "100",
-            "200",
-            "300",
-            "400",
-            "500",
-            "600",
-            "700",
-            "800",
-            "900",
-          ].includes(textFontWeightState)
-            ? textFontWeightState
-            : "normal";
-          ctx.font = `${style} ${weight} ${textFontSizeState}px ${textFontFamilyState}`;
-          ctx.textBaseline = "top";
-          // Draw white outline for visibility
-          ctx.lineWidth = 4;
-          ctx.strokeStyle = "#fff";
-          ctx.strokeText(
-            textState,
-            Math.min(Math.max(textXState, 0), fixedWidth - 1),
-            Math.min(Math.max(textYState, 0), fixedHeight - 1)
-          );
-          // Draw actual text
-          ctx.fillStyle = textColorState;
-          ctx.fillText(
-            textState,
-            Math.min(Math.max(textXState, 0), fixedWidth - 1),
-            Math.min(Math.max(textYState, 0), fixedHeight - 1)
-          );
-        }
-      };
-
-      img.onerror = () => {
-        console.error(
-          "Failed to load image. Ensure the image URL supports CORS."
+      // Draw text overlay if present
+      if (textState.trim()) {
+        ctx.filter = "none";
+        // Only use valid values for fontStyle and fontWeight
+        const style = ["normal", "italic", "oblique"].includes(
+          textFontStyleState
+        )
+          ? textFontStyleState
+          : "normal";
+        const weight = [
+          "normal",
+          "bold",
+          "100",
+          "200",
+          "300",
+          "400",
+          "500",
+          "600",
+          "700",
+          "800",
+          "900",
+        ].includes(textFontWeightState)
+          ? textFontWeightState
+          : "normal";
+        ctx.font = `${style} ${weight} ${textFontSizeState}px ${textFontFamilyState}`;
+        ctx.textBaseline = "top";
+        // Draw white outline for visibility
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#fff";
+        ctx.strokeText(
+          textState,
+          Math.min(Math.max(textXState, 0), fixedWidth - 1),
+          Math.min(Math.max(textYState, 0), fixedHeight - 1)
         );
-      };
-    }
+        // Draw actual text
+        ctx.fillStyle = textColorState;
+        ctx.fillText(
+          textState,
+          Math.min(Math.max(textXState, 0), fixedWidth - 1),
+          Math.min(Math.max(textYState, 0), fixedHeight - 1)
+        );
+      }
+    };
+
+    img.onerror = () => {
+      console.error(
+        "Failed to load image. Ensure the image URL supports CORS."
+      );
+    };
   };
 
   useEffect(() => {

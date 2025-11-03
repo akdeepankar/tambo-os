@@ -28,8 +28,12 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
       try {
         const res = await imageSearch({ query, apiKey });
         if (mounted) setImages(res.slice(0, 6));
-      } catch (err: any) {
-        if (mounted) setError(err.message || "Image search failed");
+      } catch (err: unknown) {
+        if (mounted) {
+          const errorMessage =
+            err instanceof Error ? err.message : "Image search failed";
+          setError(errorMessage);
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -43,7 +47,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   return (
     <div>
       <div className="mb-3 text-sm text-muted-foreground">
-        Showing results for "{query}"
+        Showing results for &quot;{query}&quot;
       </div>
       {loading && (
         <div className="text-sm text-muted-foreground">Loading...</div>

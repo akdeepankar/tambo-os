@@ -30,15 +30,7 @@ export async function imageSearch({
     throw new Error(`Unsplash search failed: ${res.status} ${text}`);
   }
   const data = await res.json();
-  const results: ImageSearchResult[] = (data.results || []).map((r: {
-    id: string;
-    urls: {
-      thumb: string;
-      small: string;
-      regular: string;
-      full: string;
-    };
-  }) => ({
+  const results: ImageSearchResult[] = (data.results || []).map((r: any) => ({
     id: r.id,
     thumb: r.urls.thumb,
     small: r.urls.small,

@@ -1330,31 +1330,6 @@ function PhotoEditorChatBase({
               </label>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-md font-medium text-gray-700 dark:text-gray-300">
-                Text Font
-              </h3>
-              <label className="block">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Font Family
-                </span>
-                <select
-                  value={textFontFamilyState}
-                  onChange={(e) => setTextFontFamilyState(e.target.value)}
-                  className="w-full mt-1 px-2 py-1 border rounded-md text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
-                >
-                  <option value="Arial">Arial</option>
-                  <option value="Verdana">Verdana</option>
-                  <option value="Times New Roman">Times New Roman</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                  <option value="Tahoma">Tahoma</option>
-                  <option value="Trebuchet MS">Trebuchet MS</option>
-                  <option value="Impact">Impact</option>
-                </select>
-              </label>
-            </div>
-
             <button
               className="w-full px-4 py-2 bg-primary text-white rounded-lg font-semibold shadow hover:bg-primary/90"
               onClick={handleSaveSettings}

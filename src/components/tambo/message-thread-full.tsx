@@ -58,41 +58,6 @@ export const MessageThreadFull = React.forwardRef<
 
   const threadHistorySidebar = <></>;
 
-  const defaultSuggestions: Suggestion[] = [
-    {
-      id: "suggestion-1",
-      title: "Play",
-      detailedSuggestion: "Play the current song or resume playback",
-      messageId: "play-music",
-    },
-    {
-      id: "suggestion-2",
-      title: "Add 3 80s songs",
-      detailedSuggestion: "Add 3 classic songs from the 1980s to my playlist",
-      messageId: "add-80s-songs",
-    },
-    {
-      id: "suggestion-3",
-      title: "Reverse the order",
-      detailedSuggestion: "Reverse the order of songs in my current playlist",
-      messageId: "reverse-order",
-    },
-    {
-      id: "suggestion-4",
-      title: "Shuffle playlist",
-      detailedSuggestion:
-        "Shuffle the songs in my playlist to play in random order",
-      messageId: "shuffle-playlist",
-    },
-    {
-      id: "suggestion-5",
-      title: "Create jazz playlist",
-      detailedSuggestion:
-        "Create a new playlist with smooth jazz and classic jazz songs",
-      messageId: "create-jazz-playlist",
-    },
-  ];
-
   // Gemini status polling
   const [geminiStatus, setGeminiStatus] = React.useState("");
   React.useEffect(() => {

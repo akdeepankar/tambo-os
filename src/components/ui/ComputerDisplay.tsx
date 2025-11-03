@@ -49,8 +49,7 @@ export const ComputerDisplay: React.FC<{
         {activeTab !== "notepad" &&
         activeTab !== "globe" &&
         activeTab !== "dictionary" &&
-        activeTab !== "calendar" &&
-        activeTab !== "canvas"
+        activeTab !== "calendar"
           ? children
           : null}
       </div>
@@ -104,14 +103,6 @@ export const ComputerDisplay: React.FC<{
               ),
               href: "#calendar",
               key: "calendar",
-            },
-            {
-              title: "Canvas",
-              icon: (
-                <IconPaint className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-              ),
-              href: "#canvas",
-              key: "canvas",
             },
           ]}
           desktopClassName=""
